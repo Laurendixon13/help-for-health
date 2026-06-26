@@ -1,11 +1,20 @@
 import { BottomNav } from "@/components/bottom-nav";
 import {
   type ChapterApplicationStatus,
+  type JoyVisitRequestRole,
+  type JoyVisitRequestRow,
+  type JoyVisitRequestStatus,
+  type JoyVisitRequestType,
   getChapterApplications,
+  getJoyVisitRequests,
   getPendingHours,
   requireAdmin,
 } from "@/lib/admin";
-import { updateApplicationStatus, updateHoursStatus } from "./actions";
+import {
+  updateApplicationStatus,
+  updateHoursStatus,
+  updateJoyVisitRequestStatus,
+} from "./actions";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -33,13 +42,50 @@ function applicationLabel(status: ChapterApplicationStatus) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
+const JOY_VISIT_STATUS_STYLES: Record<JoyVisitRequestStatus, string> = {
+  new: "bg-amber-100 text-amber-700",
+  in_review: "bg-sky-100 text-sky-700",
+  closed: "bg-slate-200 text-slate-700",
+};
+
+const JOY_VISIT_NEXT_STATUSES: JoyVisitRequestStatus[] = [
+  "in_review",
+  "closed",
+];
+
+const JOY_VISIT_ROLE_LABELS: Record<JoyVisitRequestRole, string> = {
+  student: "Student",
+  parent: "Parent",
+  hospital_staff: "Hospital staff",
+  donor: "Donor",
+  guest: "Guest",
+  other: "Other",
+};
+
+const JOY_VISIT_TYPE_LABELS: Record<JoyVisitRequestType, string> = {
+  request: "Request a Joy Visit",
+  suggest_guest: "Suggest a Guest",
+  become_guest: "Become a Guest",
+  donate_sponsor: "Donate / Sponsor",
+};
+
+function joyVisitStatusLabel(status: JoyVisitRequestStatus) {
+  if (status === "in_review") return "In review";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
 export default async function AdminPage() {
   await requireAdmin();
 
-  const [pendingHours, applications] = await Promise.all([
+  const [pendingHours, applications, joyVisitRequests] = await Promise.all([
     getPendingHours(),
     getChapterApplications(),
+    getJoyVisitRequests(),
   ]);
+
+  const newJoyVisitCount = joyVisitRequests.filter(
+    (r: JoyVisitRequestRow) => r.status === "new",
+  ).length;
 
   return (
     <>
@@ -185,6 +231,89 @@ export default async function AdminPage() {
                           className="rounded-full border border-border px-3 py-1 text-xs font-medium text-navy hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {applicationLabel(status)}
+                        </button>
+                      </form>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section>
+          <h2 className="mb-3 flex items-center gap-2 font-bold text-navy">
+            Joy Visit requests
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+              {newJoyVisitCount} new
+            </span>
+            <span className="text-xs font-medium text-muted">
+              · {joyVisitRequests.length} total
+            </span>
+          </h2>
+          {joyVisitRequests.length === 0 ? (
+            <p className="rounded-2xl border border-border bg-white p-6 text-center text-sm text-muted">
+              No Joy Visit requests yet.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {joyVisitRequests.map((req) => (
+                <li
+                  key={req.id}
+                  className="rounded-2xl border border-border bg-white p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-navy">{req.name}</p>
+                      <p className="text-xs text-muted">{req.email}</p>
+                      <p className="mt-1 text-xs">
+                        <span className="rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-teal">
+                          {JOY_VISIT_TYPE_LABELS[req.request_type]}
+                        </span>
+                        <span className="ml-2 text-muted">
+                          {JOY_VISIT_ROLE_LABELS[req.role]}
+                        </span>
+                      </p>
+                      {req.guest_info && (
+                        <p className="mt-2 text-xs">
+                          <span className="text-muted">Guest: </span>
+                          <span className="text-navy">{req.guest_info}</span>
+                        </p>
+                      )}
+                      {req.hospital_or_city && (
+                        <p className="text-xs">
+                          <span className="text-muted">Hospital/city: </span>
+                          <span className="text-navy">
+                            {req.hospital_or_city}
+                          </span>
+                        </p>
+                      )}
+                      {req.message && (
+                        <p className="mt-2 text-xs italic leading-relaxed text-muted">
+                          &ldquo;{req.message}&rdquo;
+                        </p>
+                      )}
+                      <p className="mt-1 text-[10px] text-muted">
+                        Submitted {formatDate(req.created_at)}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${JOY_VISIT_STATUS_STYLES[req.status]}`}
+                    >
+                      {req.status.replace("_", " ")}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {JOY_VISIT_NEXT_STATUSES.map((status) => (
+                      <form key={status} action={updateJoyVisitRequestStatus}>
+                        <input type="hidden" name="id" value={req.id} />
+                        <input type="hidden" name="status" value={status} />
+                        <button
+                          type="submit"
+                          disabled={req.status === status}
+                          className="rounded-full border border-border px-3 py-1 text-xs font-medium text-navy hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {joyVisitStatusLabel(status)}
                         </button>
                       </form>
                     ))}

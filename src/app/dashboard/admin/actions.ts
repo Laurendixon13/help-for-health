@@ -21,6 +21,7 @@ const APPLICATION_STATUSES = [
   "approved",
   "declined",
 ] as const;
+const JOY_VISIT_STATUSES = ["new", "in_review", "closed"] as const;
 
 export async function updateHoursStatus(formData: FormData) {
   await assertAdmin();
@@ -76,6 +77,28 @@ export async function updateApplicationStatus(formData: FormData) {
       schoolName: data.school_name,
       status,
     });
+  }
+
+  revalidatePath("/dashboard/admin");
+}
+
+export async function updateJoyVisitRequestStatus(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!id || !(JOY_VISIT_STATUSES as readonly string[]).includes(status)) {
+    throw new Error("Invalid input");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("joy_visit_requests")
+    .update({ status })
+    .eq("id", id)
+    .select("id");
+  if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error("Update was blocked. Admin role may not be applied yet.");
   }
 
   revalidatePath("/dashboard/admin");

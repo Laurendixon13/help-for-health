@@ -74,3 +74,44 @@ export async function getChapterApplications(): Promise<
   if (error) throw error;
   return (data ?? []) as ChapterApplicationRow[];
 }
+
+export type JoyVisitRequestStatus = "new" | "in_review" | "closed";
+
+export type JoyVisitRequestRole =
+  | "student"
+  | "parent"
+  | "hospital_staff"
+  | "donor"
+  | "guest"
+  | "other";
+
+export type JoyVisitRequestType =
+  | "request"
+  | "suggest_guest"
+  | "become_guest"
+  | "donate_sponsor";
+
+export type JoyVisitRequestRow = {
+  id: string;
+  name: string;
+  email: string;
+  role: JoyVisitRequestRole;
+  request_type: JoyVisitRequestType;
+  guest_info: string | null;
+  hospital_or_city: string | null;
+  message: string | null;
+  status: JoyVisitRequestStatus;
+  created_at: string;
+};
+
+export async function getJoyVisitRequests(): Promise<JoyVisitRequestRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("joy_visit_requests")
+    .select(
+      "id, name, email, role, request_type, guest_info, hospital_or_city, message, status, created_at",
+    )
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as JoyVisitRequestRow[];
+}

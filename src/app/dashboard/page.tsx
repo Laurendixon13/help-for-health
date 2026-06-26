@@ -3,7 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
 import { getHoursForUser, summarizeHours } from "@/lib/hours";
 import { BottomNav } from "@/components/bottom-nav";
-import { getPendingHours, isCurrentUserAdmin } from "@/lib/admin";
+import {
+  getJoyVisitRequests,
+  getPendingHours,
+  isCurrentUserAdmin,
+} from "@/lib/admin";
 
 const badges = [
   { name: "First 5 Hours", color: "bg-teal text-white", icon: "five" },
@@ -146,7 +150,15 @@ export default async function DashboardPage() {
   const entries = user ? await getHoursForUser(user.id) : [];
   const hoursStats = summarizeHours(entries);
   const isAdmin = await isCurrentUserAdmin();
-  const pendingHoursCount = isAdmin ? (await getPendingHours()).length : 0;
+  const [pendingHoursCount, newJoyVisitCount] = isAdmin
+    ? await Promise.all([
+        getPendingHours().then((r) => r.length),
+        getJoyVisitRequests().then(
+          (r) => r.filter((x) => x.status === "new").length,
+        ),
+      ])
+    : [0, 0];
+  const adminItemsCount = pendingHoursCount + newJoyVisitCount;
   const stats = [
     { label: "Total Hours", value: hoursStats.total.toFixed(1), icon: "clock" },
     {
@@ -194,9 +206,16 @@ export default async function DashboardPage() {
             <div>
               <p className="text-sm font-bold text-navy">Admin review</p>
               <p className="text-xs text-muted">
-                {pendingHoursCount === 0
+                {adminItemsCount === 0
                   ? "Nothing waiting on you."
-                  : `${pendingHoursCount} hour ${pendingHoursCount === 1 ? "entry" : "entries"} pending approval.`}
+                  : [
+                      pendingHoursCount > 0 &&
+                        `${pendingHoursCount} hour ${pendingHoursCount === 1 ? "entry" : "entries"} pending`,
+                      newJoyVisitCount > 0 &&
+                        `${newJoyVisitCount} Joy Visit ${newJoyVisitCount === 1 ? "request" : "requests"}`,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
               </p>
             </div>
             <span className="rounded-full bg-teal px-3 py-1 text-xs font-semibold text-white">
