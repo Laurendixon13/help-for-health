@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { sendChapterStatusEmail } from "@/lib/email";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -57,11 +58,25 @@ export async function updateApplicationStatus(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("chapter_applications")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .select("email, first_name, school_name")
+    .single();
   if (error) throw error;
+  if (!data) {
+    throw new Error("Update was blocked. Admin role may not be applied yet.");
+  }
+
+  if (status === "in_review" || status === "approved" || status === "declined") {
+    await sendChapterStatusEmail({
+      to: data.email,
+      firstName: data.first_name,
+      schoolName: data.school_name,
+      status,
+    });
+  }
 
   revalidatePath("/dashboard/admin");
 }

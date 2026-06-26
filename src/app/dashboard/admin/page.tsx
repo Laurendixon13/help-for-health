@@ -81,8 +81,17 @@ export default async function AdminPage() {
                       {entry.notes && (
                         <p className="mt-1 text-xs text-muted">{entry.notes}</p>
                       )}
-                      <p className="mt-1 text-[10px] text-muted">
-                        Volunteer: <code>{entry.user_id.slice(0, 8)}</code>
+                      <p className="mt-1 text-xs">
+                        <span className="text-muted">Volunteer: </span>
+                        <span className="font-medium text-navy">
+                          {entry.volunteer_name ?? entry.volunteer_email}
+                        </span>
+                        {entry.volunteer_name && (
+                          <span className="text-muted">
+                            {" "}
+                            · {entry.volunteer_email}
+                          </span>
+                        )}
                       </p>
                     </div>
                     <p className="shrink-0 font-bold text-navy">

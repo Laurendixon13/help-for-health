@@ -11,6 +11,8 @@ export type PendingHoursRow = {
   notes: string | null;
   status: "pending" | "approved" | "rejected";
   created_at: string;
+  volunteer_email: string;
+  volunteer_name: string | null;
 };
 
 export type ChapterApplicationStatus =
@@ -52,13 +54,9 @@ export async function requireAdmin() {
 
 export async function getPendingHours(): Promise<PendingHoursRow[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("hours_entries")
-    .select(
-      "id, user_id, hours, activity, occurred_on, location, notes, status, created_at",
-    )
-    .eq("status", "pending")
-    .order("created_at", { ascending: true });
+  const { data, error } = await supabase.rpc(
+    "get_pending_hours_with_volunteer",
+  );
   if (error) throw error;
   return (data ?? []) as PendingHoursRow[];
 }
