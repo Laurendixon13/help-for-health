@@ -10,51 +10,11 @@ import {
 } from "@/lib/admin";
 
 const badges = [
-  { name: "First 5 Hours", color: "bg-teal text-white", icon: "five" },
-  { name: "Care Package Helper", color: "bg-violet-500 text-white", icon: "gift" },
-  { name: "Fundraiser Leader", color: "bg-amber-400 text-white", icon: "star" },
-  { name: "Hospital Helper", color: "bg-coral text-white", icon: "heart" },
+  { name: "First Hour", threshold: 1, color: "bg-teal text-white" },
+  { name: "5 Hours", threshold: 5, color: "bg-violet-500 text-white" },
+  { name: "10 Hours", threshold: 10, color: "bg-amber-500 text-white" },
+  { name: "25 Hours", threshold: 25, color: "bg-coral text-white" },
 ];
-
-function BadgeIcon({ icon }: { icon: string }) {
-  if (icon === "five") {
-    return <span className="text-base font-bold">5</span>;
-  }
-  const props = {
-    viewBox: "0 0 24 24",
-    className: "h-6 w-6",
-    fill: "none" as const,
-    stroke: "currentColor",
-    strokeWidth: 1.75,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-  if (icon === "gift") {
-    return (
-      <svg {...props}>
-        <path d="M20 12v9H4v-9" />
-        <path d="M2 7h20v5H2z" />
-        <path d="M12 22V7" />
-        <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" />
-      </svg>
-    );
-  }
-  if (icon === "star") {
-    return (
-      <svg {...props}>
-        <path d="M12 3l2.6 5.3 5.9.9-4.25 4.15 1 5.85L12 16.7 6.75 19.2l1-5.85L3.5 9.2l5.9-.9L12 3z" />
-      </svg>
-    );
-  }
-  if (icon === "heart") {
-    return (
-      <svg {...props}>
-        <path d="M20.8 6.6a5.5 5.5 0 00-7.8 0L12 7.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z" />
-      </svg>
-    );
-  }
-  return null;
-}
 
 const opportunities = [
   {
@@ -245,20 +205,37 @@ export default async function DashboardPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 font-bold text-navy">Badges Earned</h2>
+          <h2 className="mb-3 font-bold text-navy">
+            Badges
+            <span className="ml-2 text-xs font-medium text-muted">
+              {badges.filter((b) => hoursStats.approved >= b.threshold).length}{" "}
+              of {badges.length} earned
+            </span>
+          </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:max-w-3xl">
-            {badges.map((badge) => (
-              <div key={badge.name} className="text-center">
-                <div
-                  className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full shadow-sm ${badge.color}`}
-                >
-                  <BadgeIcon icon={badge.icon} />
+            {badges.map((badge) => {
+              const earned = hoursStats.approved >= badge.threshold;
+              return (
+                <div key={badge.name} className="text-center">
+                  <div
+                    className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full shadow-sm ${
+                      earned ? badge.color : "bg-slate-100 text-slate-400"
+                    }`}
+                  >
+                    <span className="text-base font-bold">
+                      {badge.threshold}
+                    </span>
+                  </div>
+                  <p
+                    className={`mt-2 text-[10px] leading-tight ${
+                      earned ? "text-muted" : "text-slate-400"
+                    }`}
+                  >
+                    {badge.name}
+                  </p>
                 </div>
-                <p className="mt-2 text-[10px] leading-tight text-muted">
-                  {badge.name}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
