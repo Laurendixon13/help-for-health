@@ -32,9 +32,9 @@ const opportunities = [
 ];
 
 const tools = [
-  { label: "Log Hours", icon: "clock" },
-  { label: "My Hours", icon: "chart" },
-  { label: "Download Certificate", icon: "cert" },
+  { label: "Log Hours", icon: "clock", href: "/dashboard/hours" },
+  { label: "Community", icon: "users", href: "/dashboard/community" },
+  { label: "Opportunities", icon: "search", href: "/dashboard/opportunities" },
 ];
 
 function StatIcon({ icon }: { icon: string }) {
@@ -70,11 +70,20 @@ function ToolIcon({ icon }: { icon: string }) {
       </svg>
     );
   }
-  if (icon === "cert") {
+  if (icon === "search") {
     return (
       <svg viewBox="0 0 24 24" className={cls} fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="4" y="3" width="16" height="18" rx="2" />
-        <path d="M8 10h8M8 14h5" strokeLinecap="round" />
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-3-3" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (icon === "users") {
+    return (
+      <svg viewBox="0 0 24 24" className={cls} fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M16 20v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1" strokeLinecap="round" />
+        <circle cx="9" cy="7" r="3" />
+        <path d="M22 20v-1a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" strokeLinecap="round" />
       </svg>
     );
   }
@@ -124,12 +133,6 @@ export default async function DashboardPage() {
             <p className="text-sm text-muted">Keep making a difference!</p>
           </div>
           <div className="flex items-center gap-3">
-            <button type="button" aria-label="Notifications" className="text-navy">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-5-5.9V4a2 2 0 10-4 0v1.1A6 6 0 004 11v3.2c0 .5-.2 1-.6 1.4L2 17h5" strokeLinecap="round" />
-                <path d="M10 20a2 2 0 004 0" strokeLinecap="round" />
-              </svg>
-            </button>
             <form action={signOut}>
               <button
                 type="submit"
@@ -165,9 +168,9 @@ export default async function DashboardPage() {
         <section className="rounded-2xl bg-navy p-5 text-white">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-bold">Your Impact</h2>
-            <button type="button" className="text-xs text-teal-light">
+            <Link href="/dashboard/hours" className="text-xs text-teal-light">
               View all stats &gt;
-            </button>
+            </Link>
           </div>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {stats.map((stat) => (
@@ -204,9 +207,10 @@ export default async function DashboardPage() {
           <h2 className="mb-3 font-bold text-navy">Upcoming Opportunities</h2>
           <div className="grid gap-3 lg:grid-cols-2">
             {opportunities.map((item) => (
-              <article
+              <Link
                 key={item.title}
-                className="rounded-2xl border border-border bg-white p-4 shadow-sm"
+                href="/dashboard/opportunities"
+                className="rounded-2xl border border-border bg-white p-4 shadow-sm transition hover:border-teal/40 hover:shadow-md"
               >
                 <div className="flex gap-3">
                   <span className="text-2xl" aria-hidden="true">
@@ -218,19 +222,18 @@ export default async function DashboardPage() {
                     {item.location && (
                       <p className="text-xs text-teal">{item.location}</p>
                     )}
-                    <button
-                      type="button"
-                      className={`mt-3 rounded-full px-4 py-1.5 text-xs font-bold ${
+                    <span
+                      className={`mt-3 inline-block rounded-full px-4 py-1.5 text-xs font-bold ${
                         item.primary
                           ? "bg-teal text-white"
                           : "border-2 border-teal text-teal"
                       }`}
                     >
                       {item.cta}
-                    </button>
+                    </span>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </section>
@@ -239,16 +242,16 @@ export default async function DashboardPage() {
           <h2 className="mb-3 font-bold text-navy">My Tools</h2>
           <div className="grid grid-cols-3 gap-3 lg:max-w-xl">
             {tools.map((tool) => (
-              <button
+              <Link
                 key={tool.label}
-                type="button"
-                className="rounded-2xl border border-border bg-white p-4 text-center shadow-sm"
+                href={tool.href}
+                className="rounded-2xl border border-border bg-white p-4 text-center shadow-sm transition hover:border-teal/40 hover:shadow-md"
               >
                 <ToolIcon icon={tool.icon} />
                 <p className="mt-2 text-[11px] font-semibold text-navy">
                   {tool.label}
                 </p>
-              </button>
+              </Link>
             ))}
           </div>
         </section>
