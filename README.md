@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Help 4 Health
 
-## Getting Started
+Help 4 Health is a student-led organization that helps children in hospitals through fundraisers, service projects, care packages, cards, and special moments of encouragement.
 
-First, run the development server:
+## About
+
+The main goal is to make kids feel supported while they are going through a hard time. Students can earn volunteer hours, but the real purpose is helping children in hospitals feel cared for, remembered, and hopeful.
+
+Help 4 Health can grow nationally through student-led chapters, city groups, and a virtual chapter. Students lead the work, while adults and hospitals help with safety, approvals, and verified service hours.
+
+**Joy Visits** is a featured program that brings athletes, musicians, creators, authors, and other inspiring people to encourage children through visits, video messages, or performances.
+
+## Student authentication
+
+This app uses [Clerk](https://clerk.com) for student login. Dashboard routes require sign-in.
+
+1. Copy `.env.example` to `.env.local`
+2. Add your Clerk keys from [dashboard.clerk.com](https://dashboard.clerk.com/~/api-keys)
+3. Restart the dev server
+
+On first run without keys, Clerk may offer **Keyless** mode in the app — click "Configure your application" to link your account.
+
+| Route | Purpose |
+|-------|---------|
+| `/sign-in` | Student login |
+| `/sign-up` | Create student account |
+| `/dashboard` | Protected volunteer dashboard |
+
+## Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` — start the dev server
+- `npm run build` — create a production build
+- `npm run start` — run the production server
+- `npm run lint` — run ESLint
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16 (App Router)
+- React 19
+- Tailwind CSS 4
+- TypeScript
+- Clerk (student authentication)
