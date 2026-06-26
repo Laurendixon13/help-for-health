@@ -15,6 +15,7 @@ const columns = [
     links: [
       { href: "/sign-up", label: "Volunteer" },
       { href: "/start-a-chapter", label: "Start a chapter" },
+      { href: "/joy-visits", label: "Joy Visits" },
       { href: "/dashboard", label: "Student dashboard" },
     ],
   },
