@@ -1,7 +1,75 @@
-import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+
+function HeroIllustration() {
+  return (
+    <svg
+      viewBox="0 0 320 320"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="A friendly bear holding a heart"
+      role="img"
+      className="h-full w-full"
+    >
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#e0f2fe" />
+          <stop offset="100%" stopColor="#ccfbf1" />
+        </linearGradient>
+      </defs>
+      <rect width="320" height="320" fill="url(#bg)" />
+
+      <g transform="translate(0, 6)">
+        <circle cx="108" cy="118" r="26" fill="#ffffff" stroke="#1e3a5f" strokeWidth="4" />
+        <circle cx="212" cy="118" r="26" fill="#ffffff" stroke="#1e3a5f" strokeWidth="4" />
+        <circle cx="108" cy="118" r="13" fill="#fde2dc" />
+        <circle cx="212" cy="118" r="13" fill="#fde2dc" />
+
+        <circle cx="160" cy="158" r="62" fill="#ffffff" stroke="#1e3a5f" strokeWidth="4" />
+
+        <ellipse cx="139" cy="154" rx="4.5" ry="5" fill="#1e3a5f" />
+        <ellipse cx="181" cy="154" rx="4.5" ry="5" fill="#1e3a5f" />
+
+        <ellipse cx="160" cy="172" rx="6" ry="4.5" fill="#1e3a5f" />
+        <path
+          d="M160 177 Q160 188 152 190 M160 177 Q160 188 168 190"
+          stroke="#1e3a5f"
+          strokeWidth="3"
+          strokeLinecap="round"
+          fill="none"
+        />
+
+        <circle cx="118" cy="172" r="6" fill="#fde2dc" opacity="0.7" />
+        <circle cx="202" cy="172" r="6" fill="#fde2dc" opacity="0.7" />
+
+        <path
+          d="M100 232 Q160 208 220 232 L210 295 Q160 308 110 295 Z"
+          fill="#ffffff"
+          stroke="#1e3a5f"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+
+        <path
+          d="M160 252
+             C 152 240, 132 244, 132 260
+             C 132 276, 152 286, 160 296
+             C 168 286, 188 276, 188 260
+             C 188 244, 168 240, 160 252 Z"
+          fill="#e85d4c"
+          stroke="#c44a3a"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+
+        <circle cx="62" cy="62" r="4" fill="#0d9488" opacity="0.6" />
+        <circle cx="270" cy="50" r="3" fill="#0d9488" opacity="0.5" />
+        <circle cx="50" cy="220" r="3" fill="#e85d4c" opacity="0.5" />
+        <circle cx="278" cy="240" r="5" fill="#0d9488" opacity="0.45" />
+      </g>
+    </svg>
+  );
+}
 
 const programs = [
   {
@@ -112,19 +180,9 @@ export default function Home() {
           </div>
 
           <div className="relative mx-auto w-48 lg:mx-0 lg:ml-auto lg:w-72 xl:w-80">
-            <div className="overflow-hidden rounded-full border-4 border-white shadow-xl">
-              <Image
-                src="https://images.unsplash.com/photo-1581594693702-fbdc5a717633?auto=format&fit=crop&w=640&q=80"
-                alt="Child in hospital holding a teddy bear"
-                width={320}
-                height={320}
-                className="aspect-square w-full object-cover"
-                priority
-              />
+            <div className="aspect-square overflow-hidden rounded-full border-4 border-white shadow-xl">
+              <HeroIllustration />
             </div>
-            <span className="absolute -right-1 top-2 text-3xl lg:-right-3 lg:top-4 lg:text-4xl" aria-hidden="true">
-              ❤️
-            </span>
           </div>
         </section>
 
