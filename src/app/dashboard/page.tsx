@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
 import { getHoursForUser, summarizeHours } from "@/lib/hours";
 import { BottomNav } from "@/components/bottom-nav";
+import { getPendingHours, isCurrentUserAdmin } from "@/lib/admin";
 
 const badges = [
   { name: "First 5 Hours", color: "bg-teal text-white", emoji: "5" },
@@ -95,6 +96,8 @@ export default async function DashboardPage() {
 
   const entries = user ? await getHoursForUser(user.id) : [];
   const hoursStats = summarizeHours(entries);
+  const isAdmin = await isCurrentUserAdmin();
+  const pendingHoursCount = isAdmin ? (await getPendingHours()).length : 0;
   const stats = [
     { label: "Total Hours", value: hoursStats.total.toFixed(1), icon: "clock" },
     {
@@ -140,6 +143,25 @@ export default async function DashboardPage() {
       </header>
 
       <main className="page-container space-y-6 py-6 pb-24 lg:pb-8">
+        {isAdmin && (
+          <Link
+            href="/dashboard/admin"
+            className="flex items-center justify-between rounded-2xl border border-teal/30 bg-teal/5 p-4 shadow-sm transition hover:bg-teal/10"
+          >
+            <div>
+              <p className="text-sm font-bold text-navy">Admin review</p>
+              <p className="text-xs text-muted">
+                {pendingHoursCount === 0
+                  ? "Nothing waiting on you."
+                  : `${pendingHoursCount} hour ${pendingHoursCount === 1 ? "entry" : "entries"} pending approval.`}
+              </p>
+            </div>
+            <span className="rounded-full bg-teal px-3 py-1 text-xs font-semibold text-white">
+              Open →
+            </span>
+          </Link>
+        )}
+
         <section className="rounded-2xl bg-navy p-5 text-white">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-bold">Your Impact</h2>
