@@ -3,7 +3,7 @@ import { Resend } from "resend";
 const apiKey = process.env.RESEND_API_KEY;
 const resend = apiKey ? new Resend(apiKey) : null;
 
-const FROM = process.env.RESEND_FROM_EMAIL ?? "Help 4 Health <onboarding@resend.dev>";
+const FROM = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 
 export type ChapterEmailStatus = "in_review" | "approved" | "declined";
 
