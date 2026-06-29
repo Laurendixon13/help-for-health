@@ -22,6 +22,7 @@ const APPLICATION_STATUSES = [
   "declined",
 ] as const;
 const JOY_VISIT_STATUSES = ["new", "in_review", "closed"] as const;
+const ADMIN_REQUEST_DECISIONS = ["approved", "declined"] as const;
 
 export async function updateHoursStatus(formData: FormData) {
   await assertAdmin();
@@ -102,4 +103,41 @@ export async function updateJoyVisitRequestStatus(formData: FormData) {
   }
 
   revalidatePath("/dashboard/admin");
+}
+
+export async function decideAdminRequest(formData: FormData) {
+  await assertAdmin();
+  const id = String(formData.get("id") ?? "");
+  const userId = String(formData.get("user_id") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  if (
+    !id ||
+    !userId ||
+    !(ADMIN_REQUEST_DECISIONS as readonly string[]).includes(decision)
+  ) {
+    throw new Error("Invalid input");
+  }
+
+  const supabase = await createClient();
+
+  if (decision === "approved") {
+    const { error: promoteError } = await supabase.rpc(
+      "promote_user_to_admin",
+      { target_user_id: userId },
+    );
+    if (promoteError) throw promoteError;
+  }
+
+  const { data, error } = await supabase
+    .from("admin_requests")
+    .update({ status: decision, reviewed_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+  if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error("Update was blocked. Admin role may not be applied yet.");
+  }
+
+  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard");
 }

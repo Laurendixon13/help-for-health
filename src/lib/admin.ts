@@ -104,6 +104,56 @@ export type JoyVisitRequestRow = {
   created_at: string;
 };
 
+export type AdminRequestRow = {
+  id: string;
+  user_id: string;
+  reason: string | null;
+  created_at: string;
+  user_email: string;
+  user_name: string | null;
+};
+
+export async function getPendingAdminRequests(): Promise<AdminRequestRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_pending_admin_requests");
+  if (error) throw error;
+  return (data ?? []) as AdminRequestRow[];
+}
+
+// Called on dashboard load: if the user signed up with a pending_admin_reason
+// in their metadata and hasn't already filed an admin_requests row, file one.
+// Best-effort — failures are logged and don't block the page.
+export async function ensureAdminRequestFromSignup() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  const reason =
+    (user.user_metadata?.pending_admin_reason as string | undefined) ?? "";
+  if (!reason) return;
+
+  const { data: existing } = await supabase
+    .from("admin_requests")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (existing) return;
+
+  const insertRes = await supabase
+    .from("admin_requests")
+    .insert({ user_id: user.id, reason });
+  if (insertRes.error) {
+    console.error("Failed to create admin request from signup:", insertRes.error);
+    return;
+  }
+
+  // Clear the metadata flag so we don't try again on every page load.
+  await supabase.auth.updateUser({
+    data: { ...user.user_metadata, pending_admin_reason: null },
+  });
+}
+
 export async function getJoyVisitRequests(): Promise<JoyVisitRequestRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

@@ -7,10 +7,12 @@ import {
   type JoyVisitRequestType,
   getChapterApplications,
   getJoyVisitRequests,
+  getPendingAdminRequests,
   getPendingHours,
   requireAdmin,
 } from "@/lib/admin";
 import {
+  decideAdminRequest,
   updateApplicationStatus,
   updateHoursStatus,
   updateJoyVisitRequestStatus,
@@ -77,11 +79,13 @@ function joyVisitStatusLabel(status: JoyVisitRequestStatus) {
 export default async function AdminPage() {
   await requireAdmin();
 
-  const [pendingHours, applications, joyVisitRequests] = await Promise.all([
-    getPendingHours(),
-    getChapterApplications(),
-    getJoyVisitRequests(),
-  ]);
+  const [pendingHours, applications, joyVisitRequests, adminRequests] =
+    await Promise.all([
+      getPendingHours(),
+      getChapterApplications(),
+      getJoyVisitRequests(),
+      getPendingAdminRequests(),
+    ]);
 
   const newJoyVisitCount = joyVisitRequests.filter(
     (r: JoyVisitRequestRow) => r.status === "new",
@@ -99,6 +103,70 @@ export default async function AdminPage() {
       </header>
 
       <main className="page-container space-y-8 py-6 pb-24 lg:pb-8">
+        {adminRequests.length > 0 && (
+          <section>
+            <h2 className="mb-3 flex items-center gap-2 font-bold text-navy">
+              Admin access requests
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                {adminRequests.length}
+              </span>
+            </h2>
+            <ul className="space-y-2">
+              {adminRequests.map((req) => (
+                <li
+                  key={req.id}
+                  className="rounded-2xl border border-border bg-white p-4 shadow-sm"
+                >
+                  <p className="font-semibold text-navy">
+                    {req.user_name ?? req.user_email}
+                  </p>
+                  <p className="text-xs text-muted">{req.user_email}</p>
+                  {req.reason && (
+                    <p className="mt-2 rounded-lg bg-surface px-3 py-2 text-xs italic leading-5 text-navy">
+                      &ldquo;{req.reason}&rdquo;
+                    </p>
+                  )}
+                  <p className="mt-1 text-[10px] text-muted">
+                    Requested {formatDate(req.created_at)}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <form action={decideAdminRequest}>
+                      <input type="hidden" name="id" value={req.id} />
+                      <input type="hidden" name="user_id" value={req.user_id} />
+                      <input
+                        type="hidden"
+                        name="decision"
+                        value="approved"
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-teal/90"
+                      >
+                        Grant admin
+                      </button>
+                    </form>
+                    <form action={decideAdminRequest}>
+                      <input type="hidden" name="id" value={req.id} />
+                      <input type="hidden" name="user_id" value={req.user_id} />
+                      <input
+                        type="hidden"
+                        name="decision"
+                        value="declined"
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-full border border-coral px-4 py-1.5 text-xs font-semibold text-coral hover:bg-coral/10"
+                      >
+                        Decline
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section>
           <h2 className="mb-3 flex items-center gap-2 font-bold text-navy">
             Pending hours

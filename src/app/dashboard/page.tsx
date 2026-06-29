@@ -4,6 +4,7 @@ import { signOut } from "@/app/auth/actions";
 import { getHoursForUser, summarizeHours } from "@/lib/hours";
 import { BottomNav } from "@/components/bottom-nav";
 import {
+  ensureAdminRequestFromSignup,
   getJoyVisitRequests,
   getPendingHours,
   isCurrentUserAdmin,
@@ -125,6 +126,7 @@ export default async function DashboardPage() {
     : [0, 0];
   const adminItemsCount = pendingHoursCount + newJoyVisitCount;
 
+  if (user) await ensureAdminRequestFromSignup();
   const myChapters = user ? await getMyChapterApplications() : [];
   const approvedChapters = myChapters.filter((c) => c.status === "approved");
   const pendingChapters = myChapters.filter(

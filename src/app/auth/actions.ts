@@ -30,9 +30,16 @@ export async function signUp(
   const password = String(formData.get("password") ?? "");
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
+  const requestAdmin = formData.get("request_admin") === "1";
+  const adminReason = requestAdmin
+    ? String(formData.get("admin_request_reason") ?? "").trim().slice(0, 1000)
+    : "";
 
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters." };
+  }
+  if (requestAdmin && !adminReason) {
+    return { error: "Please share why you need admin access." };
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -41,7 +48,11 @@ export async function signUp(
     email,
     password,
     options: {
-      data: { first_name: firstName, last_name: lastName },
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        ...(adminReason ? { pending_admin_reason: adminReason } : {}),
+      },
       emailRedirectTo: `${appUrl}/auth/confirm`,
     },
   });
