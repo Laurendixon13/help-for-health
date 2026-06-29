@@ -5,7 +5,7 @@ import {
   type OpportunityCategory,
   type OpportunityWithSignup,
   CATEGORY_LABELS,
-} from "@/lib/opportunities";
+} from "@/lib/opportunities-types";
 import { setSignupStatus } from "./actions";
 import { LearnMoreLink } from "./learn-more-link";
 
