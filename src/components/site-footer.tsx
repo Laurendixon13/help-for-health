@@ -62,8 +62,8 @@ export function SiteFooter() {
       <div className="border-t border-border">
         <div className="page-container flex flex-col gap-2 py-4 text-[11px] text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {new Date().getFullYear()} Help 4 Health. A 501(c)(3) nonprofit.
-            EIN: TBD.
+            © {new Date().getFullYear()} Help 4 Health. A student-led
+            organization.
           </p>
           <p>Made with 💚 by students.</p>
         </div>

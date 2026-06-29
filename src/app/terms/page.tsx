@@ -126,11 +126,12 @@ export default function TermsPage() {
           <section>
             <h2 className="font-bold text-navy">Donations</h2>
             <p className="mt-2">
-              When donation processing is enabled, gifts are handled by
+              When donation processing is enabled, gifts will be handled by
               Stripe and are final at the time of submission. A receipt is
-              emailed by Stripe. Help 4 Health is a 501(c)(3) nonprofit;
-              donations may be tax-deductible to the extent allowed by law.
-              Consult your tax advisor for your specific situation.
+              emailed by Stripe. Help 4 Health is not yet a registered
+              501(c)(3) nonprofit, so contributions are{" "}
+              <strong>not currently tax-deductible</strong>. We will update
+              this section if and when 501(c)(3) status is granted.
             </p>
           </section>
 
