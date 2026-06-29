@@ -7,66 +7,65 @@ function HeroIllustration() {
     <svg
       viewBox="0 0 320 320"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="A friendly bear holding a heart"
+      aria-label="Help 4 Health"
       role="img"
       className="h-full w-full"
     >
       <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="heroBg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#e0f2fe" />
           <stop offset="100%" stopColor="#ccfbf1" />
         </linearGradient>
+        <linearGradient id="heartFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ef6a59" />
+          <stop offset="100%" stopColor="#d14a3a" />
+        </linearGradient>
       </defs>
-      <rect width="320" height="320" fill="url(#bg)" />
 
-      <g transform="translate(0, 6)">
-        <circle cx="108" cy="118" r="26" fill="#ffffff" stroke="#1e3a5f" strokeWidth="4" />
-        <circle cx="212" cy="118" r="26" fill="#ffffff" stroke="#1e3a5f" strokeWidth="4" />
-        <circle cx="108" cy="118" r="13" fill="#fde2dc" />
-        <circle cx="212" cy="118" r="13" fill="#fde2dc" />
+      <rect width="320" height="320" fill="url(#heroBg)" />
 
-        <circle cx="160" cy="158" r="62" fill="#ffffff" stroke="#1e3a5f" strokeWidth="4" />
+      <circle cx="58" cy="60" r="4" fill="#0d9488" opacity="0.45" />
+      <circle cx="272" cy="52" r="3" fill="#0d9488" opacity="0.4" />
+      <circle cx="46" cy="240" r="3.5" fill="#e85d4c" opacity="0.45" />
+      <circle cx="278" cy="250" r="5" fill="#0d9488" opacity="0.4" />
+      <circle cx="240" cy="58" r="2.5" fill="#e85d4c" opacity="0.45" />
 
-        <ellipse cx="139" cy="154" rx="4.5" ry="5" fill="#1e3a5f" />
-        <ellipse cx="181" cy="154" rx="4.5" ry="5" fill="#1e3a5f" />
+      <path
+        d="M160 110
+           C 132 64, 60 70, 60 130
+           C 60 188, 134 234, 160 268
+           C 186 234, 260 188, 260 130
+           C 260 70, 188 64, 160 110 Z"
+        fill="url(#heartFill)"
+        stroke="#b8412f"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
 
-        <ellipse cx="160" cy="172" rx="6" ry="4.5" fill="#1e3a5f" />
-        <path
-          d="M160 177 Q160 188 152 190 M160 177 Q160 188 168 190"
-          stroke="#1e3a5f"
-          strokeWidth="3"
-          strokeLinecap="round"
-          fill="none"
-        />
-
-        <circle cx="118" cy="172" r="6" fill="#fde2dc" opacity="0.7" />
-        <circle cx="202" cy="172" r="6" fill="#fde2dc" opacity="0.7" />
-
-        <path
-          d="M100 232 Q160 208 220 232 L210 295 Q160 308 110 295 Z"
-          fill="#ffffff"
-          stroke="#1e3a5f"
-          strokeWidth="4"
-          strokeLinejoin="round"
-        />
-
-        <path
-          d="M160 252
-             C 152 240, 132 244, 132 260
-             C 132 276, 152 286, 160 296
-             C 168 286, 188 276, 188 260
-             C 188 244, 168 240, 160 252 Z"
-          fill="#e85d4c"
-          stroke="#c44a3a"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
-        />
-
-        <circle cx="62" cy="62" r="4" fill="#0d9488" opacity="0.6" />
-        <circle cx="270" cy="50" r="3" fill="#0d9488" opacity="0.5" />
-        <circle cx="50" cy="220" r="3" fill="#e85d4c" opacity="0.5" />
-        <circle cx="278" cy="240" r="5" fill="#0d9488" opacity="0.45" />
-      </g>
+      <text
+        x="160"
+        y="158"
+        textAnchor="middle"
+        fill="#ffffff"
+        fontFamily="var(--font-geist-sans), system-ui, sans-serif"
+        fontSize="38"
+        fontWeight="800"
+        letterSpacing="-0.5"
+      >
+        Help 4
+      </text>
+      <text
+        x="160"
+        y="198"
+        textAnchor="middle"
+        fill="#ffffff"
+        fontFamily="var(--font-geist-sans), system-ui, sans-serif"
+        fontSize="38"
+        fontWeight="800"
+        letterSpacing="-0.5"
+      >
+        Health
+      </text>
     </svg>
   );
 }
