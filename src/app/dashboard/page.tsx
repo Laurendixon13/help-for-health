@@ -8,6 +8,11 @@ import {
   getPendingHours,
   isCurrentUserAdmin,
 } from "@/lib/admin";
+import {
+  type OpportunityCategory,
+  CATEGORY_LABELS,
+  getOpportunitiesForUser,
+} from "@/lib/opportunities";
 
 const badges = [
   { name: "First Hour", threshold: 1, color: "bg-teal text-white" },
@@ -16,24 +21,23 @@ const badges = [
   { name: "25 Hours", threshold: 25, color: "bg-coral text-white" },
 ];
 
-const opportunities = [
-  {
-    title: "Card Writing Event",
-    meta: "Sat, May 18 • 2:00 PM",
-    location: "Virtual",
-    icon: "✉️",
-    cta: "Sign Up",
-    primary: true,
-  },
-  {
-    title: "Local Hospital Volunteer Program",
-    meta: "Children's National Hospital",
-    location: "",
-    icon: "🏥",
-    cta: "View Details",
-    primary: false,
-  },
-];
+const CATEGORY_BADGE_STYLES: Record<OpportunityCategory, string> = {
+  virtual: "bg-sky-100 text-sky-700",
+  in_person: "bg-teal/10 text-teal",
+  fundraiser: "bg-amber-100 text-amber-700",
+  joy_visit: "bg-violet-100 text-violet-700",
+};
+
+function formatUpcoming(iso: string | null): string | null {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 const tools = [
   { label: "Log Hours", icon: "clock", href: "/dashboard/hours" },
@@ -119,6 +123,16 @@ export default async function DashboardPage() {
       ])
     : [0, 0];
   const adminItemsCount = pendingHoursCount + newJoyVisitCount;
+
+  const allOpps = user ? await getOpportunitiesForUser(user.id) : [];
+  const now = Date.now();
+  const upcomingOpps = allOpps
+    .filter((o) => o.starts_at && new Date(o.starts_at).getTime() > now)
+    .slice(0, 2);
+  const dashboardOpps =
+    upcomingOpps.length >= 2
+      ? upcomingOpps
+      : [...upcomingOpps, ...allOpps.filter((o) => !o.starts_at)].slice(0, 2);
   const stats = [
     { label: "Total Hours", value: hoursStats.total.toFixed(1), icon: "clock" },
     {
@@ -240,38 +254,59 @@ export default async function DashboardPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 font-bold text-navy">Upcoming Opportunities</h2>
-          <div className="grid gap-3 lg:grid-cols-2">
-            {opportunities.map((item) => (
-              <Link
-                key={item.title}
-                href="/dashboard/opportunities"
-                className="rounded-2xl border border-border bg-white p-4 shadow-sm transition hover:border-teal/40 hover:shadow-md"
-              >
-                <div className="flex gap-3">
-                  <span className="text-2xl" aria-hidden="true">
-                    {item.icon}
-                  </span>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-navy">{item.title}</h3>
-                    <p className="mt-0.5 text-xs text-muted">{item.meta}</p>
-                    {item.location && (
-                      <p className="text-xs text-teal">{item.location}</p>
-                    )}
-                    <span
-                      className={`mt-3 inline-block rounded-full px-4 py-1.5 text-xs font-bold ${
-                        item.primary
-                          ? "bg-teal text-white"
-                          : "border-2 border-teal text-teal"
-                      }`}
-                    >
-                      {item.cta}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="font-bold text-navy">Upcoming Opportunities</h2>
+            <Link
+              href="/dashboard/opportunities"
+              className="text-xs font-semibold text-teal hover:underline"
+            >
+              See all →
+            </Link>
           </div>
+          {dashboardOpps.length === 0 ? (
+            <p className="rounded-2xl border border-border bg-white p-6 text-center text-sm text-muted">
+              No opportunities posted right now. Check back soon!
+            </p>
+          ) : (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {dashboardOpps.map((opp) => {
+                const when = formatUpcoming(opp.starts_at);
+                return (
+                  <Link
+                    key={opp.id}
+                    href="/dashboard/opportunities"
+                    className="rounded-2xl border border-border bg-white p-4 shadow-sm transition hover:border-teal/40 hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-sm font-bold text-navy">
+                        {opp.title}
+                      </h3>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${CATEGORY_BADGE_STYLES[opp.category]}`}
+                      >
+                        {CATEGORY_LABELS[opp.category]}
+                      </span>
+                    </div>
+                    {when && (
+                      <p className="mt-1 text-xs text-teal">{when}</p>
+                    )}
+                    {opp.location && (
+                      <p className="mt-0.5 text-xs text-muted">
+                        {opp.location}
+                      </p>
+                    )}
+                    <span className="mt-3 inline-block rounded-full bg-teal px-4 py-1.5 text-xs font-bold text-white">
+                      {opp.signup_status === "signed_up"
+                        ? "Signed up ✓"
+                        : opp.signup_status === "considering"
+                          ? "Considering ✓"
+                          : "View details"}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section>
