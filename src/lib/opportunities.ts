@@ -13,6 +13,8 @@ export type Opportunity = {
   category: OpportunityCategory;
   location: string | null;
   starts_at: string | null;
+  source_url: string | null;
+  age_range: string | null;
 };
 
 export type OpportunityWithSignup = Opportunity & { signed_up: boolean };
@@ -39,7 +41,9 @@ export async function getOpportunitiesForUser(
   const [oppsRes, signupsRes] = await Promise.all([
     supabase
       .from("opportunities")
-      .select("id, title, description, category, location, starts_at")
+      .select(
+        "id, title, description, category, location, starts_at, source_url, age_range",
+      )
       .eq("is_active", true)
       .order("starts_at", { ascending: true, nullsFirst: false }),
     supabase
