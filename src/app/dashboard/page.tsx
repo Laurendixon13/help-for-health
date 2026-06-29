@@ -13,6 +13,7 @@ import {
   CATEGORY_LABELS,
   getOpportunitiesForUser,
 } from "@/lib/opportunities";
+import { getMyChapterApplications } from "@/lib/chapters";
 
 const badges = [
   { name: "First Hour", threshold: 1, color: "bg-teal text-white" },
@@ -124,6 +125,12 @@ export default async function DashboardPage() {
     : [0, 0];
   const adminItemsCount = pendingHoursCount + newJoyVisitCount;
 
+  const myChapters = user ? await getMyChapterApplications() : [];
+  const approvedChapters = myChapters.filter((c) => c.status === "approved");
+  const pendingChapters = myChapters.filter(
+    (c) => c.status === "new" || c.status === "in_review",
+  );
+
   const allOpps = user ? await getOpportunitiesForUser(user.id) : [];
   const now = Date.now();
   const upcomingOpps = allOpps
@@ -196,6 +203,71 @@ export default async function DashboardPage() {
               Open →
             </span>
           </Link>
+        )}
+
+        {approvedChapters.length > 0 && (
+          <section className="rounded-2xl border border-teal/30 bg-gradient-to-br from-teal/10 to-sky-50 p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal text-white">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold uppercase tracking-wide text-teal">
+                  Chapter approved
+                </p>
+                {approvedChapters.map((c) => (
+                  <p key={c.id} className="mt-1 text-sm text-navy">
+                    Your Help 4 Health chapter at{" "}
+                    <span className="font-bold">{c.school_name}</span>{" "}
+                    <span className="text-muted">
+                      ({c.school_city}, {c.school_state})
+                    </span>{" "}
+                    is approved. Welcome to the team!
+                  </p>
+                ))}
+                <p className="mt-2 text-xs text-muted">
+                  We&apos;ll be in touch with onboarding details. In the
+                  meantime, browse{" "}
+                  <Link
+                    href="/dashboard/opportunities"
+                    className="font-semibold text-teal hover:underline"
+                  >
+                    opportunities
+                  </Link>{" "}
+                  and start logging hours.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {pendingChapters.length > 0 && (
+          <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-amber-700">
+              Chapter application{" "}
+              {pendingChapters[0].status === "in_review"
+                ? "in review"
+                : "received"}
+            </p>
+            {pendingChapters.map((c) => (
+              <p key={c.id} className="mt-1 text-sm text-navy">
+                Your application for{" "}
+                <span className="font-semibold">{c.school_name}</span> is{" "}
+                {c.status === "in_review" ? "under review" : "in the queue"}.
+                We&apos;ll email you when there&apos;s an update.
+              </p>
+            ))}
+          </section>
         )}
 
         <section className="rounded-2xl bg-navy p-5 text-white">
