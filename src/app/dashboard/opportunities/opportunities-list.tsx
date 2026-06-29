@@ -141,6 +141,8 @@ function OpportunityCard({ opp }: { opp: OpportunityWithSignup }) {
   );
 }
 
+type SortMode = "recommended" | "alpha-asc" | "alpha-desc";
+
 export function OpportunitiesList({
   opportunities,
   mineOnly,
@@ -153,6 +155,7 @@ export function OpportunitiesList({
     Set<OpportunityCategory>
   >(new Set());
   const [selectedAges, setSelectedAges] = useState<Set<string>>(new Set());
+  const [sort, setSort] = useState<SortMode>("recommended");
 
   const allCategories = useMemo(
     () =>
@@ -190,7 +193,19 @@ export function OpportunitiesList({
     });
   }, [opportunities, query, selectedCategories, selectedAges]);
 
-  const sections = useMemo(() => groupByTiming(filtered), [filtered]);
+  const sorted = useMemo(() => {
+    if (sort === "recommended") return filtered;
+    const copy = [...filtered];
+    copy.sort((a, b) => {
+      const cmp = a.title.localeCompare(b.title, undefined, {
+        sensitivity: "base",
+      });
+      return sort === "alpha-asc" ? cmp : -cmp;
+    });
+    return copy;
+  }, [filtered, sort]);
+
+  const sections = useMemo(() => groupByTiming(sorted), [sorted]);
   const anyFilter =
     query.trim() !== "" ||
     selectedCategories.size > 0 ||
@@ -300,29 +315,43 @@ export function OpportunitiesList({
           </div>
         )}
 
-        {anyFilter && (
-          <div className="flex items-center justify-between pt-1 text-xs">
-            <span className="text-muted">
-              {filtered.length} of {opportunities.length} match
-            </span>
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="font-semibold text-teal hover:underline"
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+          <label className="flex items-center gap-2">
+            <span className="text-muted">Sort:</span>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortMode)}
+              className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-medium text-navy outline-none focus:border-teal"
             >
-              Clear filters
-            </button>
-          </div>
-        )}
+              <option value="recommended">Recommended (by date)</option>
+              <option value="alpha-asc">A → Z</option>
+              <option value="alpha-desc">Z → A</option>
+            </select>
+          </label>
+          {anyFilter && (
+            <div className="flex items-center gap-3">
+              <span className="text-muted">
+                {sorted.length} of {opportunities.length} match
+              </span>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="font-semibold text-teal hover:underline"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+        </div>
       </section>
 
-      {filtered.length === 0 ? (
+      {sorted.length === 0 ? (
         <p className="rounded-2xl border border-border bg-white p-6 text-sm text-muted">
           {mineOnly
             ? "You haven't signed up for anything matching these filters yet."
             : "Nothing matches those filters. Try clearing them."}
         </p>
-      ) : (
+      ) : sort === "recommended" ? (
         <div className="space-y-8">
           {sections.map((section) => (
             <section key={section.key}>
@@ -340,6 +369,12 @@ export function OpportunitiesList({
             </section>
           ))}
         </div>
+      ) : (
+        <ul className="grid gap-3 lg:grid-cols-2">
+          {sorted.map((opp) => (
+            <OpportunityCard key={opp.id} opp={opp} />
+          ))}
+        </ul>
       )}
     </>
   );
