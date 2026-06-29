@@ -48,6 +48,39 @@ We deeply appreciate your passion for helping kids in hospitals and hope you'll 
   }
 }
 
+const CONTACT_INBOX =
+  process.env.CONTACT_INBOX_EMAIL ?? "hello@help4health.net";
+
+export async function sendContactMessage(params: {
+  fromName: string;
+  fromEmail: string;
+  message: string;
+}): Promise<{ ok: boolean; reason?: string }> {
+  if (!resend) {
+    console.warn("RESEND_API_KEY is not set — skipping contact message email");
+    return { ok: false, reason: "no_api_key" };
+  }
+  const { fromName, fromEmail, message } = params;
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to: CONTACT_INBOX,
+    replyTo: fromEmail,
+    subject: `New contact form message from ${fromName}`,
+    text: `From: ${fromName} <${fromEmail}>
+
+${message}
+
+—
+Sent from the Help 4 Health contact form (help4health.net/contact).
+Hit Reply to respond directly to the sender.`,
+  });
+  if (error) {
+    console.error("Resend error sending contact message:", error);
+    return { ok: false, reason: error.message };
+  }
+  return { ok: true };
+}
+
 export async function sendChapterStatusEmail(params: {
   to: string;
   firstName: string;

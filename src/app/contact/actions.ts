@@ -1,14 +1,16 @@
 "use server";
 
+import { sendContactMessage } from "@/lib/email";
+
 export type ContactState = { error: string } | { ok: true } | undefined;
 
 export async function submitContact(
   _prev: ContactState,
   formData: FormData,
 ): Promise<ContactState> {
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim().slice(0, 100);
+  const email = String(formData.get("email") ?? "").trim().slice(0, 200);
+  const message = String(formData.get("message") ?? "").trim().slice(0, 5000);
 
   if (!name || !email || !message) {
     return { error: "All fields are required." };
@@ -17,9 +19,17 @@ export async function submitContact(
     return { error: "Please enter a valid email address." };
   }
 
-  // TODO: send via Resend/Postmark/SES. For now, log so the team can see it
-  // in dev and we have a clear hook for the email integration.
-  console.log("[contact]", { name, email, message });
+  const result = await sendContactMessage({
+    fromName: name,
+    fromEmail: email,
+    message,
+  });
+  if (!result.ok) {
+    return {
+      error:
+        "Sorry — we couldn't send your message right now. Please email hello@help4health.net directly.",
+    };
+  }
 
   return { ok: true };
 }
