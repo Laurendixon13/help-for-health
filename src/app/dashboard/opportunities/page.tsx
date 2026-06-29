@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { createClient } from "@/lib/supabase/server";
@@ -7,7 +8,9 @@ import {
   CATEGORY_LABELS,
   getOpportunitiesForUser,
 } from "@/lib/opportunities";
-import { toggleSignup } from "./actions";
+import { setSignupStatus } from "./actions";
+import { LearnMoreLink } from "./learn-more-link";
+import { PostClickPrompt } from "./post-click-prompt";
 
 const CATEGORY_BADGE_STYLES: Record<OpportunityCategory, string> = {
   virtual: "bg-sky-100 text-sky-700",
@@ -55,23 +58,121 @@ function groupByTiming(opps: OpportunityWithSignup[]): Section[] {
   ].filter((s) => s.items.length > 0);
 }
 
-export default async function OpportunitiesPage() {
+function OpportunityCard({ opp }: { opp: OpportunityWithSignup }) {
+  const date = formatDate(opp.starts_at);
+  const signedUp = opp.signup_status === "signed_up";
+  const considering = opp.signup_status === "considering";
+
+  return (
+    <li className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="text-sm font-bold text-navy">{opp.title}</h3>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${CATEGORY_BADGE_STYLES[opp.category]}`}
+        >
+          {CATEGORY_LABELS[opp.category]}
+        </span>
+      </div>
+
+      <p className="mt-1.5 text-xs leading-5 text-muted">{opp.description}</p>
+
+      <dl className="mt-3 space-y-1 text-xs">
+        {date && (
+          <div className="flex gap-1.5">
+            <dt className="font-semibold text-navy">When:</dt>
+            <dd className="text-teal">{date}</dd>
+          </div>
+        )}
+        {opp.location && (
+          <div className="flex gap-1.5">
+            <dt className="font-semibold text-navy">Where:</dt>
+            <dd className="text-muted">{opp.location}</dd>
+          </div>
+        )}
+        {opp.age_range && (
+          <div className="flex gap-1.5">
+            <dt className="font-semibold text-navy">Age:</dt>
+            <dd className="text-muted">{opp.age_range}</dd>
+          </div>
+        )}
+      </dl>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <form action={setSignupStatus}>
+          <input type="hidden" name="opportunity_id" value={opp.id} />
+          <input type="hidden" name="next_status" value="signed_up" />
+          <input
+            type="hidden"
+            name="current_status"
+            value={opp.signup_status ?? ""}
+          />
+          <button
+            type="submit"
+            className={
+              signedUp
+                ? "rounded-full bg-teal px-4 py-1.5 text-xs font-bold text-white"
+                : "rounded-full border-2 border-teal px-4 py-1.5 text-xs font-bold text-teal hover:bg-teal/5"
+            }
+          >
+            {signedUp ? "Signed up ✓" : "Sign up"}
+          </button>
+        </form>
+        <form action={setSignupStatus}>
+          <input type="hidden" name="opportunity_id" value={opp.id} />
+          <input type="hidden" name="next_status" value="considering" />
+          <input
+            type="hidden"
+            name="current_status"
+            value={opp.signup_status ?? ""}
+          />
+          <button
+            type="submit"
+            className={
+              considering
+                ? "rounded-full bg-amber-400 px-4 py-1.5 text-xs font-bold text-white"
+                : "rounded-full border-2 border-amber-400 px-4 py-1.5 text-xs font-bold text-amber-600 hover:bg-amber-50"
+            }
+          >
+            {considering ? "Considering ✓" : "Considering"}
+          </button>
+        </form>
+        {opp.source_url && (
+          <LearnMoreLink
+            id={opp.id}
+            title={opp.title}
+            href={opp.source_url}
+          />
+        )}
+      </div>
+    </li>
+  );
+}
+
+export default async function OpportunitiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  const opportunities = await getOpportunitiesForUser(user.id);
-  const sections = groupByTiming(opportunities);
+  const { view } = await searchParams;
+  const mineOnly = view === "mine";
 
-  const ageOptions = Array.from(
-    new Set(opportunities.map((o) => o.age_range).filter(Boolean) as string[]),
-  ).sort();
+  const all = await getOpportunitiesForUser(user.id);
+  const visible = mineOnly ? all.filter((o) => o.signup_status) : all;
+  const myCount = all.filter((o) => o.signup_status).length;
 
+  const sections = groupByTiming(visible);
   const categories = Array.from(
-    new Set(opportunities.map((o) => o.category)),
+    new Set(visible.map((o) => o.category)),
   ).sort() as OpportunityCategory[];
+  const ageOptions = Array.from(
+    new Set(visible.map((o) => o.age_range).filter(Boolean) as string[]),
+  ).sort();
 
   return (
     <>
@@ -85,49 +186,85 @@ export default async function OpportunitiesPage() {
       </header>
 
       <main className="page-container py-6 pb-24 lg:pb-8">
-        {opportunities.length === 0 ? (
+        <div className="mb-5 inline-flex rounded-full border border-border bg-white p-1 shadow-sm">
+          <Link
+            href="/dashboard/opportunities"
+            className={
+              !mineOnly
+                ? "rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-white"
+                : "rounded-full px-4 py-1.5 text-xs font-semibold text-navy hover:bg-surface"
+            }
+          >
+            Browse all
+          </Link>
+          <Link
+            href="/dashboard/opportunities?view=mine"
+            className={
+              mineOnly
+                ? "rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-white"
+                : "rounded-full px-4 py-1.5 text-xs font-semibold text-navy hover:bg-surface"
+            }
+          >
+            My list
+            {myCount > 0 && (
+              <span
+                className={`ml-1 inline-block rounded-full px-1.5 text-[10px] ${
+                  mineOnly ? "bg-white/20" : "bg-teal/10 text-teal"
+                }`}
+              >
+                {myCount}
+              </span>
+            )}
+          </Link>
+        </div>
+
+        {visible.length === 0 ? (
           <p className="rounded-2xl border border-border bg-white p-6 text-sm text-muted">
-            No opportunities posted right now. Check back soon!
+            {mineOnly
+              ? "You haven't signed up for anything yet. Browse all to find an opportunity."
+              : "No opportunities posted right now. Check back soon!"}
           </p>
         ) : (
           <>
-            <section
-              aria-label="Filters"
-              className="mb-6 space-y-3 rounded-2xl border border-border bg-white p-4 shadow-sm"
-            >
-              <div>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted">
-                  Category
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {categories.map((c) => (
-                    <span
-                      key={c}
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${CATEGORY_BADGE_STYLES[c]}`}
-                    >
-                      {CATEGORY_LABELS[c]}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              {ageOptions.length > 0 && (
+            {!mineOnly && (
+              <section
+                aria-label="Filters"
+                className="mb-6 space-y-3 rounded-2xl border border-border bg-white p-4 shadow-sm"
+              >
                 <div>
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted">
-                    Age requirements
+                    Category
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {ageOptions.map((a) => (
+                    {categories.map((c) => (
                       <span
-                        key={a}
-                        className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-navy"
+                        key={c}
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${CATEGORY_BADGE_STYLES[c]}`}
                       >
-                        {a}
+                        {CATEGORY_LABELS[c]}
                       </span>
                     ))}
                   </div>
                 </div>
-              )}
-            </section>
+                {ageOptions.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                      Age requirements
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {ageOptions.map((a) => (
+                        <span
+                          key={a}
+                          className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-navy"
+                        >
+                          {a}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
 
             <div className="space-y-8">
               {sections.map((section) => (
@@ -139,94 +276,9 @@ export default async function OpportunitiesPage() {
                     </span>
                   </div>
                   <ul className="grid gap-3 lg:grid-cols-2">
-                    {section.items.map((opp) => {
-                      const date = formatDate(opp.starts_at);
-                      return (
-                        <li
-                          key={opp.id}
-                          className="rounded-2xl border border-border bg-white p-4 shadow-sm"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="text-sm font-bold text-navy">
-                              {opp.title}
-                            </h3>
-                            <span
-                              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${CATEGORY_BADGE_STYLES[opp.category]}`}
-                            >
-                              {CATEGORY_LABELS[opp.category]}
-                            </span>
-                          </div>
-
-                          <p className="mt-1.5 text-xs leading-5 text-muted">
-                            {opp.description}
-                          </p>
-
-                          <dl className="mt-3 space-y-1 text-xs">
-                            {date && (
-                              <div className="flex gap-1.5">
-                                <dt className="font-semibold text-navy">
-                                  When:
-                                </dt>
-                                <dd className="text-teal">{date}</dd>
-                              </div>
-                            )}
-                            {opp.location && (
-                              <div className="flex gap-1.5">
-                                <dt className="font-semibold text-navy">
-                                  Where:
-                                </dt>
-                                <dd className="text-muted">{opp.location}</dd>
-                              </div>
-                            )}
-                            {opp.age_range && (
-                              <div className="flex gap-1.5">
-                                <dt className="font-semibold text-navy">
-                                  Age:
-                                </dt>
-                                <dd className="text-muted">{opp.age_range}</dd>
-                              </div>
-                            )}
-                          </dl>
-
-                          <div className="mt-4 flex flex-wrap items-center gap-3">
-                            <form action={toggleSignup}>
-                              <input
-                                type="hidden"
-                                name="opportunity_id"
-                                value={opp.id}
-                              />
-                              <input
-                                type="hidden"
-                                name="signed_up"
-                                value={opp.signed_up ? "1" : "0"}
-                              />
-                              <button
-                                type="submit"
-                                className={
-                                  opp.signed_up
-                                    ? "rounded-full border-2 border-teal px-4 py-1.5 text-xs font-bold text-teal"
-                                    : "rounded-full bg-teal px-4 py-1.5 text-xs font-bold text-white hover:bg-teal-light"
-                                }
-                              >
-                                {opp.signed_up
-                                  ? "Signed up · Cancel"
-                                  : "Sign up"}
-                              </button>
-                            </form>
-                            {opp.source_url && (
-                              <a
-                                href={opp.source_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs font-semibold text-teal hover:underline"
-                              >
-                                Learn more →
-                              </a>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
+                    {section.items.map((opp) => (
+                      <OpportunityCard key={opp.id} opp={opp} />
+                    ))}
                   </ul>
                 </section>
               ))}
@@ -234,6 +286,8 @@ export default async function OpportunitiesPage() {
           </>
         )}
       </main>
+
+      <PostClickPrompt knownIds={all.map((o) => o.id)} />
       <BottomNav />
     </>
   );

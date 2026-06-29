@@ -6,6 +6,8 @@ export type OpportunityCategory =
   | "fundraiser"
   | "joy_visit";
 
+export type SignupStatus = "signed_up" | "considering";
+
 export type Opportunity = {
   id: string;
   title: string;
@@ -17,7 +19,9 @@ export type Opportunity = {
   age_range: string | null;
 };
 
-export type OpportunityWithSignup = Opportunity & { signed_up: boolean };
+export type OpportunityWithSignup = Opportunity & {
+  signup_status: SignupStatus | null;
+};
 
 export const CATEGORY_LABELS: Record<OpportunityCategory, string> = {
   virtual: "Virtual",
@@ -48,19 +52,22 @@ export async function getOpportunitiesForUser(
       .order("starts_at", { ascending: true, nullsFirst: false }),
     supabase
       .from("opportunity_signups")
-      .select("opportunity_id")
+      .select("opportunity_id, status")
       .eq("user_id", userId),
   ]);
 
   if (oppsRes.error) throw oppsRes.error;
   if (signupsRes.error) throw signupsRes.error;
 
-  const signedUp = new Set(
-    (signupsRes.data ?? []).map((row) => row.opportunity_id as string),
+  const statusByOpp = new Map<string, SignupStatus>(
+    (signupsRes.data ?? []).map((row) => [
+      row.opportunity_id as string,
+      (row.status ?? "signed_up") as SignupStatus,
+    ]),
   );
 
   return (oppsRes.data ?? []).map((row) => ({
     ...(row as Opportunity),
-    signed_up: signedUp.has(row.id as string),
+    signup_status: statusByOpp.get(row.id as string) ?? null,
   }));
 }
