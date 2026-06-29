@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { logHours, type LogHoursState } from "@/app/dashboard/hours/actions";
 
 export function LogHoursForm({ today }: { today: string }) {
@@ -9,9 +9,13 @@ export function LogHoursForm({ today }: { today: string }) {
     undefined,
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const [verify, setVerify] = useState(false);
 
   useEffect(() => {
-    if (state && "ok" in state && state.ok) formRef.current?.reset();
+    if (state && "ok" in state && state.ok) {
+      formRef.current?.reset();
+      setVerify(false);
+    }
   }, [state]);
 
   return (
@@ -79,6 +83,40 @@ export function LogHoursForm({ today }: { today: string }) {
           className="w-full rounded-xl border border-border px-3 py-2 text-sm outline-none focus:border-teal"
         />
       </label>
+
+      <div className="rounded-xl border border-border bg-surface p-3">
+        <label className="flex cursor-pointer items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={verify}
+            onChange={(e) => setVerify(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-teal"
+          />
+          <span>
+            <span className="font-medium text-navy">
+              Email the organizer to verify
+            </span>
+            <span className="block text-xs text-muted">
+              We&apos;ll send a short note asking them to confirm you were
+              there. Speeds up admin approval.
+            </span>
+          </span>
+        </label>
+        {verify && (
+          <label className="mt-3 block text-sm">
+            <span className="mb-1 block font-medium text-navy">
+              Organizer email
+            </span>
+            <input
+              name="organizer_email"
+              type="email"
+              required
+              placeholder="organizer@example.org"
+              className="w-full rounded-xl border border-border px-3 py-2 text-sm outline-none focus:border-teal"
+            />
+          </label>
+        )}
+      </div>
 
       {state && "error" in state && (
         <p className="rounded-lg bg-coral/10 px-3 py-2 text-xs text-coral">

@@ -81,6 +81,71 @@ Hit Reply to respond directly to the sender.`,
   return { ok: true };
 }
 
+export async function sendHoursVerificationRequest(params: {
+  to: string;
+  volunteerName: string;
+  volunteerEmail: string;
+  hours: number;
+  occurredOn: string;
+  activity: string;
+  location: string | null;
+  notes: string | null;
+}): Promise<{ ok: boolean; reason?: string }> {
+  if (!resend) {
+    console.warn(
+      "RESEND_API_KEY is not set — skipping hours verification email to",
+      params.to,
+    );
+    return { ok: false, reason: "no_api_key" };
+  }
+
+  const {
+    to,
+    volunteerName,
+    volunteerEmail,
+    hours,
+    occurredOn,
+    activity,
+    location,
+    notes,
+  } = params;
+
+  const prettyDate = new Date(occurredOn + "T00:00:00").toLocaleDateString(
+    undefined,
+    { weekday: "long", month: "long", day: "numeric", year: "numeric" },
+  );
+
+  const body = `Hello,
+
+${volunteerName} is logging volunteer hours through Help 4 Health and asked that we send you this note so you can confirm their participation.
+
+  Volunteer:  ${volunteerName} <${volunteerEmail}>
+  Activity:   ${activity}
+  Date:       ${prettyDate}
+  Hours:      ${hours.toFixed(2)}${location ? `\n  Location:   ${location}` : ""}${notes ? `\n  Notes:      ${notes}` : ""}
+
+If this is accurate, no action is needed — simply replying "confirmed" helps us approve their hours faster. If anything looks off, please reply with the correction and we'll follow up with the volunteer.
+
+Thank you for the work you do with young volunteers.
+
+— The Help 4 Health team
+help4health.net`;
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: CONTACT_INBOX,
+    subject: `Verifying volunteer hours for ${volunteerName} (${activity})`,
+    text: body,
+  });
+
+  if (error) {
+    console.error("Resend error sending hours verification email:", error);
+    return { ok: false, reason: error.message };
+  }
+  return { ok: true };
+}
+
 export async function sendChapterStatusEmail(params: {
   to: string;
   firstName: string;
