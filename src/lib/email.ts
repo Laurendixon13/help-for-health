@@ -81,6 +81,65 @@ Hit Reply to respond directly to the sender.`,
   return { ok: true };
 }
 
+export type AdminRequestDecision = "approved" | "declined";
+
+export async function sendAdminRequestDecisionEmail(params: {
+  to: string;
+  firstName: string;
+  decision: AdminRequestDecision;
+}): Promise<{ ok: boolean; reason?: string }> {
+  if (!resend) {
+    console.warn(
+      "RESEND_API_KEY is not set — skipping admin-request decision email to",
+      params.to,
+    );
+    return { ok: false, reason: "no_api_key" };
+  }
+
+  const { to, firstName, decision } = params;
+  const name = firstName || "there";
+
+  const subject =
+    decision === "approved"
+      ? "You're now a Help 4 Health admin"
+      : "Update on your Help 4 Health admin request";
+
+  const body =
+    decision === "approved"
+      ? `Hi ${name},
+
+Good news — your request for Help 4 Health admin access has been approved.
+
+To start reviewing pending hours and chapter applications, please sign out and sign back in once so your session picks up the new role. The Admin section will then appear on your dashboard.
+
+Thanks for stepping up to help.
+
+— The Help 4 Health team
+help4health.net`
+      : `Hi ${name},
+
+Thank you for offering to help with Help 4 Health. After reviewing your request, we're not able to grant admin access at this time. This isn't a reflection on you — admin access is currently limited to chapter leaders and approved hospital partners.
+
+You can still volunteer, log hours, and sign up for opportunities as a member. If your role changes, please feel free to request again.
+
+— The Help 4 Health team
+help4health.net`;
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: CONTACT_INBOX,
+    subject,
+    text: body,
+  });
+
+  if (error) {
+    console.error("Resend error sending admin-request decision email:", error);
+    return { ok: false, reason: error.message };
+  }
+  return { ok: true };
+}
+
 export async function sendHoursVerificationRequest(params: {
   to: string;
   volunteerName: string;

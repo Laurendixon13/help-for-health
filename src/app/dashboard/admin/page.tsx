@@ -135,6 +135,16 @@ export default async function AdminPage() {
                       <input type="hidden" name="user_id" value={req.user_id} />
                       <input
                         type="hidden"
+                        name="user_email"
+                        value={req.user_email}
+                      />
+                      <input
+                        type="hidden"
+                        name="user_name"
+                        value={req.user_name ?? ""}
+                      />
+                      <input
+                        type="hidden"
                         name="decision"
                         value="approved"
                       />
@@ -148,6 +158,16 @@ export default async function AdminPage() {
                     <form action={decideAdminRequest}>
                       <input type="hidden" name="id" value={req.id} />
                       <input type="hidden" name="user_id" value={req.user_id} />
+                      <input
+                        type="hidden"
+                        name="user_email"
+                        value={req.user_email}
+                      />
+                      <input
+                        type="hidden"
+                        name="user_name"
+                        value={req.user_name ?? ""}
+                      />
                       <input
                         type="hidden"
                         name="decision"

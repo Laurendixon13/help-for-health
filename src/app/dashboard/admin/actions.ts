@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { sendChapterStatusEmail } from "@/lib/email";
+import {
+  sendAdminRequestDecisionEmail,
+  sendChapterStatusEmail,
+} from "@/lib/email";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -110,6 +113,8 @@ export async function decideAdminRequest(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const userId = String(formData.get("user_id") ?? "");
   const decision = String(formData.get("decision") ?? "");
+  const userEmail = String(formData.get("user_email") ?? "").trim();
+  const userName = String(formData.get("user_name") ?? "").trim();
   if (
     !id ||
     !userId ||
@@ -136,6 +141,15 @@ export async function decideAdminRequest(formData: FormData) {
   if (error) throw error;
   if (!data || data.length === 0) {
     throw new Error("Update was blocked. Admin role may not be applied yet.");
+  }
+
+  if (userEmail) {
+    const firstName = userName.split(" ")[0] ?? "";
+    await sendAdminRequestDecisionEmail({
+      to: userEmail,
+      firstName,
+      decision: decision as "approved" | "declined",
+    });
   }
 
   revalidatePath("/dashboard/admin");
