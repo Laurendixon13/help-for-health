@@ -17,3 +17,17 @@ export async function getMyChapterApplications(): Promise<
   if (error) throw error;
   return (data ?? []) as MyChapterApplication[];
 }
+
+export type PublicChapter = {
+  id: string;
+  school_name: string;
+  school_city: string;
+  school_state: string;
+};
+
+export async function getPublicChapters(): Promise<PublicChapter[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_public_chapters");
+  if (error) throw error;
+  return (data ?? []) as PublicChapter[];
+}
