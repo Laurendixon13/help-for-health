@@ -14,7 +14,10 @@ import {
   CATEGORY_LABELS,
   getOpportunitiesForUser,
 } from "@/lib/opportunities";
-import { getMyChapterApplications } from "@/lib/chapters";
+import {
+  getMyChapterApplications,
+  getMyChapterMemberships,
+} from "@/lib/chapters";
 
 const badges = [
   { name: "First Hour", threshold: 1, color: "bg-teal text-white" },
@@ -128,6 +131,7 @@ export default async function DashboardPage() {
 
   if (user) await ensureAdminRequestFromSignup();
   const myChapters = user ? await getMyChapterApplications() : [];
+  const myMemberships = user ? await getMyChapterMemberships() : [];
   const approvedChapters = myChapters.filter((c) => c.status === "approved");
   const pendingChapters = myChapters.filter(
     (c) => c.status === "new" || c.status === "in_review",
@@ -269,6 +273,37 @@ export default async function DashboardPage() {
                 We&apos;ll email you when there&apos;s an update.
               </p>
             ))}
+          </section>
+        )}
+
+        {myMemberships.length > 0 && (
+          <section className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-teal">
+                Your chapter{myMemberships.length > 1 ? "s" : ""}
+              </p>
+              <Link
+                href="/chapters"
+                className="text-xs font-semibold text-teal hover:underline"
+              >
+                Find more →
+              </Link>
+            </div>
+            <ul className="space-y-1.5">
+              {myMemberships.map((m) => (
+                <li
+                  key={m.chapter_id}
+                  className="flex items-baseline gap-2 text-sm"
+                >
+                  <span className="font-semibold text-navy">
+                    {m.school_name}
+                  </span>
+                  <span className="text-xs text-muted">
+                    · {m.school_city}, {m.school_state}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

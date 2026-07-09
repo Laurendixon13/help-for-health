@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { createClient } from "@/lib/supabase/server";
 import { getPublicChapters } from "@/lib/chapters";
+import { joinChapter, leaveChapter } from "./actions";
 
 export const metadata = {
   title: "Chapters | Help 4 Health",
@@ -31,6 +33,11 @@ function stateName(code: string): string {
 
 export default async function ChaptersPage() {
   const chapters = await getPublicChapters();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isSignedIn = !!user;
 
   const byState = new Map<string, typeof chapters>();
   for (const c of chapters) {
@@ -119,29 +126,73 @@ export default async function ChaptersPage() {
                       {list.map((c) => (
                         <li
                           key={c.id}
-                          className="flex items-start gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm"
+                          className="rounded-2xl border border-border bg-white p-4 shadow-sm"
                         >
-                          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal/10 text-teal">
-                            <svg
-                              viewBox="0 0 24 24"
-                              className="h-5 w-5"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.75"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M3 21h18M6 21V10l6-4 6 4v11" />
-                              <path d="M10 21v-6h4v6" />
-                            </svg>
-                          </span>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-navy">
-                              {c.school_name}
-                            </p>
-                            <p className="text-xs text-muted">
-                              {c.school_city}, {code}
-                            </p>
+                          <div className="flex items-start gap-3">
+                            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal/10 text-teal">
+                              <svg
+                                viewBox="0 0 24 24"
+                                className="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.75"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M3 21h18M6 21V10l6-4 6 4v11" />
+                                <path d="M10 21v-6h4v6" />
+                              </svg>
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-navy">
+                                {c.school_name}
+                              </p>
+                              <p className="text-xs text-muted">
+                                {c.school_city}, {code}
+                              </p>
+                              <p className="mt-1 text-[10px] uppercase tracking-wide text-muted">
+                                {c.member_count}{" "}
+                                {c.member_count === 1 ? "member" : "members"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            {!isSignedIn ? (
+                              <Link
+                                href="/sign-in?next=/chapters"
+                                className="inline-flex rounded-full border-2 border-teal px-4 py-1.5 text-xs font-bold text-teal hover:bg-teal/5"
+                              >
+                                Sign in to join
+                              </Link>
+                            ) : c.is_member ? (
+                              <form action={leaveChapter}>
+                                <input
+                                  type="hidden"
+                                  name="chapter_id"
+                                  value={c.id}
+                                />
+                                <button
+                                  type="submit"
+                                  className="rounded-full bg-teal px-4 py-1.5 text-xs font-bold text-white"
+                                >
+                                  Member ✓ · Leave
+                                </button>
+                              </form>
+                            ) : (
+                              <form action={joinChapter}>
+                                <input
+                                  type="hidden"
+                                  name="chapter_id"
+                                  value={c.id}
+                                />
+                                <button
+                                  type="submit"
+                                  className="rounded-full border-2 border-teal px-4 py-1.5 text-xs font-bold text-teal hover:bg-teal/5"
+                                >
+                                  Join this chapter
+                                </button>
+                              </form>
+                            )}
                           </div>
                         </li>
                       ))}
