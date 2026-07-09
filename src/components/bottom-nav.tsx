@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/dashboard", label: "Home", icon: "home" },
+  { href: "/", label: "Home", icon: "home" },
+  { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/dashboard/opportunities", label: "Opportunities", icon: "search" },
   { href: "/dashboard/hours", label: "Hours", icon: "clock" },
   { href: "/dashboard/community", label: "Community", icon: "users" },
@@ -18,6 +19,16 @@ function NavIcon({ icon, active }: { icon: string; active: boolean }) {
     return (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill={active ? color : "none"} stroke={color} strokeWidth="2">
         <path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (icon === "dashboard") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={color} strokeWidth="2">
+        <rect x="3" y="3" width="8" height="10" rx="1.5" />
+        <rect x="13" y="3" width="8" height="6" rx="1.5" />
+        <rect x="3" y="15" width="8" height="6" rx="1.5" />
+        <rect x="13" y="11" width="8" height="10" rx="1.5" />
       </svg>
     );
   }
@@ -59,18 +70,20 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-border bg-white">
-      <ul className="page-container grid grid-cols-5 py-2">
+      <ul className="page-container grid grid-cols-6 py-2">
         {items.map((item) => {
           const active =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
+            item.href === "/"
+              ? pathname === "/"
+              : item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
 
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 px-1 py-1 text-[10px] font-medium ${
+                className={`flex flex-col items-center gap-0.5 px-1 py-1 text-[9px] font-medium sm:text-[10px] ${
                   active ? "text-teal" : "text-muted"
                 }`}
               >
